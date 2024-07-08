@@ -35,8 +35,23 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Đăng nhập thành công',
             'token' => $token,
-            'user' => $user
+            'user' => [
+                'email' => $user->email,
+                'full_name' => $user->full_name,
+                'short_name' => $this->getShortName($user->full_name),
+                'role' => $user->role,
+            ]
         ], 200);
+    }
+
+    private function getShortName($full_name)
+    {
+        $name = explode(' ', $full_name);
+        $short_name = '';
+        foreach ($name as $n) {
+            $short_name .= strtoupper($n[0]);
+        }
+        return $short_name;
     }
 
     public function sendOtp(Request $request)
