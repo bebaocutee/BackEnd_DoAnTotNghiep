@@ -12,7 +12,6 @@ class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
     use HasFactory;
-    use SoftDeletes;
 
     const ROLE_STUDENT = 1;
     const ROLE_TEACHER = 2;
@@ -25,6 +24,11 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function teacherInfo()
+    {
+        return $this->hasOne(TeacherInfo::class, 'teacher_id');
+    }
 
     public function getJWTIdentifier()
     {

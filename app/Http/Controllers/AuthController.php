@@ -25,9 +25,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email không đúng!'], 422);
         }
 
-        $user = User::where('email', $request->email)->where('password', $request->password)->first();
+        $user = User::where('email', $request->email)->first();
 
-        if ($user == null) {
+        if (auth()->attempt($request->only(['email', 'password'])) == false) {
             return response()->json(['message' => 'Mật khẩu không đúng!'], 422);
         }
 
@@ -51,7 +51,7 @@ class AuthController extends Controller
         foreach ($name as $n) {
             $short_name .= strtoupper($n[0]);
         }
-        return $short_name;
+        return $short_name[0] . $short_name[strlen($short_name) - 1];
     }
 
     public function sendOtp(Request $request)

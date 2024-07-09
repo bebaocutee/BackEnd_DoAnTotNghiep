@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('teacher_id')->unique();
             $table->date('date_of_birth');
             $table->string('experience');
-            $table->string('qualification');
-            $table->string('introduction');
+            $table->string('work_unit');
+            $table->string('introduction')->nullable();
             $table->timestamps();
         });
     }

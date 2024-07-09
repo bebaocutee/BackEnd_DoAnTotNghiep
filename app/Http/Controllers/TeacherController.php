@@ -2,29 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\UserResource;
+use App\Http\Resources\TeacherResource;
 use App\Models\TeacherInfo;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
     public function index(Request $request)
     {
-        $teachers = User::where(['role' => User::ROLE_TEACHER])->get();
-        return response()->json(UserResource::collection($teachers));
+        $teachers = User::where(['role' => User::ROLE_TEACHER])->with(['teacherInfo'])->get();
+        return response()->json(TeacherResource::collection($teachers));
     }
 
     public function create(Request $request)
     {
-        User::create($request->only(['full_name', 'email', 'password']), ['role' => User::ROLE_TEACHER]);
+        DB::transaction(function () use ($request) {
+            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER]));
+            TeacherInfo::create([
+                'teacher_id' => $teacher->id, 
+                'date_of_birth' => $request->date_of_birth, 
+                'experience' => $request->experience, 
+                'work_unit' => $request->work_unit, 
+                'introduction' => $request->introduction
+            ]);
+        });
         return response()->json(['message' => 'Tạo giáo viên thành công']);
     }
 
     public function show($id)
     {
         $teacher = User::find($id);
-        return response()->json(new UserResource($teacher));
+        return response()->json(new TeacherResource($teacher));
     }
 
     public function update(Request $request, $id)
