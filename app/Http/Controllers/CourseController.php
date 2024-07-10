@@ -16,7 +16,7 @@ class CourseController extends Controller
 
     public function create(Request $request)
     {
-        Course::create(array_merge($request->only(['name', 'description']), ['admin_id' => auth()->id()]));
+        Course::create(array_merge($request->only(['course_name', 'description']), ['admin_id' => auth()->id()]));
         return response()->json(['message' => 'Tạo khóa học thành công']);
     }
 
@@ -29,13 +29,16 @@ class CourseController extends Controller
     public function update(Request $request, $id)
     {
         $course = Course::find($id);
-        $course->update($request->only(['name', 'description']));
+        $course->update($request->only(['course_name', 'description']));
         return response()->json(['message' => 'Cập nhật khóa học thành công']);
     }
 
     public function delete($id)
     {
-        Course::delete($id);
+        $course = Course::find($id);
+        if ($course) {
+            $course->delete();
+        }
         return response()->json(['message' => 'Xóa khóa học thành công']);
     }
 }

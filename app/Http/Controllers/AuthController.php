@@ -91,4 +91,12 @@ class AuthController extends Controller
         auth()->user()->update(['password' => $request->new_password]);
         return response()->json(['message' => 'Đổi mật khẩu thành công'], 200);
     }
+
+    public function checkAuth()
+    {
+        if (auth()->check()) {
+            return response()->json(['message' => 'Đã đăng nhập'], 200);
+        }
+        return response()->json(['message' => 'Chưa đăng nhập'], 401);
+    }
 }

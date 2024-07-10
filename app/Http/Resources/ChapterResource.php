@@ -14,6 +14,9 @@ class ChapterResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return array_merge(parent::toArray($request), [
+            'course_name' => $this->course->course_name ?? null,
+            'lesson_count' => $this->lessons->count() ?? 0,
+        ]);
     }
 }

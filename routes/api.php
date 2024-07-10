@@ -14,6 +14,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('send-otp', [AuthController::class, 'sendOtp']);
 Route::post('forget-password', [AuthController::class, 'forgetPassword']);
 Route::post('change-password', [AuthController::class, 'changePassword']);
+Route::get('check-auth', [AuthController::class, 'checkAuth']);
 
 Route::prefix('courses')->group(function () {
     Route::get('/', [CourseController::class, 'index']);
@@ -39,7 +40,7 @@ Route::prefix('lessons')->group(function () {
     Route::delete('/{id}', [LessonController::class, 'delete']);
 });
 
-Route::prefix('users')->group(function () {
+Route::prefix('students')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::post('/', [UserController::class, 'create']);
     Route::get('/{id}', [UserController::class, 'show']);

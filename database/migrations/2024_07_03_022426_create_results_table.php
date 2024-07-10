@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('results', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_id');
-            $table->unsignedBigInteger('lesson_id');
             $table->unsignedBigInteger('question_id');
             $table->unsignedBigInteger('answer_id');
+            $table->unsignedBigInteger('user_lesson_id');
             $table->timestamps();
         });
     }

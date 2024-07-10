@@ -10,13 +10,19 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $user = User::where(['role' => User::ROLE_STUDENT])->get();
-        return response()->json(UserResource::collection($user));
+        $users = User::where(['role' => User::ROLE_STUDENT])->with(['lessons.chapter.course'])->get();
+        $users = $users->map(function ($user) {
+            $user->courses = $user->lessons->map(function ($lesson) {
+                return $lesson->chapter->course;
+            })->unique()->values();
+            return $user;
+        });
+        return response()->json(UserResource::collection($users));
     }
 
     public function create(Request $request)
     {
-        User::create($request->only(['full_name', 'email', 'password']), ['role' => User::ROLE_STUDENT]);
+        User::create($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_STUDENT]);
         return response()->json(['message' => 'Tạo học sinh thành công']);
     }
 
@@ -29,13 +35,21 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::find($id);
-        $user->update($request->only(['full_name', 'email', 'password']));
+        if ($request->password) {
+            $data = $request->only(['full_name', 'email', 'password', 'phone_number']);
+        } else {
+            $data = $request->only(['full_name', 'email', 'phone_number']);
+        }
+        $user->update($data);
         return response()->json(['message' => 'Cập nhật học sinh thành công']);
     }
 
     public function delete($id)
     {
-        User::delete($id);
+        $user = User::find($id);
+        if ($user) {
+            $user->delete();
+        }
         return response()->json(['message' => 'Xóa học sinh thành công']);
     }
 }
