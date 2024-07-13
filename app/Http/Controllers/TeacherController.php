@@ -18,13 +18,17 @@ class TeacherController extends Controller
 
     public function create(Request $request)
     {
-        DB::transaction(function () use ($request) {
-            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER]));
+        $url = null;
+        if ($request->file('avatar')) {
+            $url = $request->file('avatar')->store('public');
+        }
+        DB::transaction(function () use ($request, $url) {
+            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER, 'avatar' => $url]));
             TeacherInfo::create([
-                'teacher_id' => $teacher->id, 
-                'date_of_birth' => $request->date_of_birth, 
-                'experience' => $request->experience, 
-                'work_unit' => $request->work_unit, 
+                'teacher_id' => $teacher->id,
+                'date_of_birth' => $request->date_of_birth,
+                'experience' => $request->experience,
+                'work_unit' => $request->work_unit,
                 'introduction' => $request->introduction
             ]);
         });
@@ -39,14 +43,26 @@ class TeacherController extends Controller
 
     public function update(Request $request, $id)
     {
+        $url = null;
+        if ($request->file('avatar')) {
+            $url = $request->file('avatar')->store('public');
+        }
         $teacher = User::find($id);
-        $teacher->update($request->only(['full_name', 'email', 'password']));
+        if ($url) {
+            $teacher->avatar = $url;
+            $teacher->save();
+        }
+        $teacher->update($request->only(['full_name', 'email', 'password', 'phone_number']));
+        TeacherInfo::updateOrCreate(
+            ['teacher_id' => $id],
+            $request->only(['date_of_birth', 'experience', 'work_unit', 'introduction'])
+        );
         return response()->json(['message' => 'Cập nhật giáo viên thành công']);
     }
 
     public function delete($id)
     {
-        User::delete($id);
+        User::destroy($id);
         return response()->json(['message' => 'Xóa giáo viên thành công']);
     }
 

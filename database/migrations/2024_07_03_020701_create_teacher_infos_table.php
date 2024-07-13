@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('teacher_infos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('teacher_id')->unique();
-            $table->date('date_of_birth');
+            $table->date('date_of_birth')->nullable();
             $table->string('experience');
             $table->string('work_unit');
             $table->string('introduction')->nullable();

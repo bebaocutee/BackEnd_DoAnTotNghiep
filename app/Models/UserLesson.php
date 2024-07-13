@@ -5,10 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LessonQuestion extends Model
+class UserLesson extends Model
 {
     use HasFactory;
 
+    protected $table = 'user_lesson';
     protected $guarded = [];
-    protected $table = 'lesson_question';
+
+    public function results()
+    {
+        return $this->hasMany(Result::class, 'user_lesson_id');
+    }
 }

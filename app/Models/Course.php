@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Course extends Model
 {
     use HasFactory;
-    
+
     protected $guarded = [];
+
+    public function chapters()
+    {
+        return $this->hasMany(Chapter::class);
+    }
 }

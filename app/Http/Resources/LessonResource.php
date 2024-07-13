@@ -14,6 +14,11 @@ class LessonResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return array_merge(parent::toArray($request), [
+            'chapter' => $this->chapter->chapter_name ?? null,
+            'course' => $this->chapter->course->course_name ?? null,
+            'course_id' => $this->chapter->course->id ?? null,
+            'questions_count' => $this->questions->count() ?? 0,
+        ]);
     }
 }

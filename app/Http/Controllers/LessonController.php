@@ -4,13 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\LessonResource;
 use App\Models\Lesson;
+use App\Models\LessonQuestion;
 use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
     public function index(Request $request)
     {
-        $lesson = Lesson::all();
+        $query = Lesson::query();
+        if ($request->chapter_id) {
+            $query->where('chapter_id', $request->chapter_id);
+        }
+        if ($request->course_id) {
+            $query->whereHas('chapter', function ($query) use ($request) {
+                $query->where('course_id', $request->course_id);
+            });
+        }
+        $lesson = $query->with(['chapter.course', 'questions'])->get();
         return response()->json(LessonResource::collection($lesson));
     }
 
@@ -41,7 +51,22 @@ class LessonController extends Controller
 
     public function delete($id)
     {
-        Lesson::delete($id);
+        Lesson::destroy($id);
         return response()->json(['message' => 'Xóa bài học thành công']);
+    }
+
+    public function getSelected($id)
+    {
+        $selected = LessonQuestion::where('lesson_id', $id)->pluck('question_id')->toArray();
+        return response()->json($selected);
+    }
+
+    public function saveSelected(Request $request, $id)
+    {
+        LessonQuestion::where('lesson_id', $id)->delete();
+        foreach ($request->selected as $questionId) {
+            LessonQuestion::create(['lesson_id' => $id, 'question_id' => $questionId]);
+        }
+        return response()->json(['message' => 'Lưu câu hỏi thành công']);
     }
 }

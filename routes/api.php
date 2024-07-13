@@ -3,7 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -38,6 +40,8 @@ Route::prefix('lessons')->group(function () {
     Route::get('/{id}', [LessonController::class, 'show']);
     Route::put('/{id}', [LessonController::class, 'update']);
     Route::delete('/{id}', [LessonController::class, 'delete']);
+    Route::get('/selected/{id}', [LessonController::class, 'getSelected']);
+    Route::post('/selected/{id}', [LessonController::class, 'saveSelected']);
 });
 
 Route::prefix('students')->group(function () {
@@ -55,4 +59,20 @@ Route::prefix('teachers')->group(function () {
     Route::put('/{id}', [TeacherController::class, 'update']);
     Route::delete('/{id}', [TeacherController::class, 'delete']);
     Route::put('/info', [TeacherController::class, 'updateInfo']);
+});
+
+Route::prefix('questions')->group(function () {
+    Route::get('/', [QuestionController::class, 'index']);
+    Route::post('/', [QuestionController::class, 'create']);
+    Route::get('/{id}', [QuestionController::class, 'show']);
+    Route::put('/{id}', [QuestionController::class, 'update']);
+    Route::delete('/{id}', [QuestionController::class, 'delete']);
+});
+
+Route::prefix('home')->group(function () {
+    Route::get('top-courses', [HomeController::class, 'topCourses']);
+    Route::get('courses', [HomeController::class, 'courses']);
+    Route::get('list-lesson/{id}', [HomeController::class, 'listLesson']);
+    Route::get('get-question/{id}', [HomeController::class, 'getQuestion']);
+    Route::post('submit-lesson/{id}', [HomeController::class, 'submitLesson']);
 });

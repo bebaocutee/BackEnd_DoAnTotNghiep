@@ -18,4 +18,9 @@ class Lesson extends Model
     {
         return $this->belongsTo(Chapter::class);
     }
+
+    public function questions()
+    {
+        return $this->hasManyThrough(Question::class, LessonQuestion::class, 'lesson_id', 'id', 'id', 'question_id');
+    }
 }

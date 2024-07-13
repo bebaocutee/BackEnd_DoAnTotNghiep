@@ -18,6 +18,8 @@ return new class extends Migration
             $table->unsignedBigInteger('teacher_id');
             $table->unsignedBigInteger('chapter_id');
             $table->integer('time_limit')->nullable();
+            $table->boolean('shuffle')->default(false);
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
