@@ -75,4 +75,6 @@ Route::prefix('home')->group(function () {
     Route::get('list-lesson/{id}', [HomeController::class, 'listLesson']);
     Route::get('get-question/{id}', [HomeController::class, 'getQuestion']);
     Route::post('submit-lesson/{id}', [HomeController::class, 'submitLesson']);
+    Route::get('test', [HomeController::class, 'test']);
+    Route::get('get-test/{id}', [HomeController::class, 'getTest']);
 });

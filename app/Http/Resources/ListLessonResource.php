@@ -27,7 +27,7 @@ class ListLessonResource extends JsonResource
                             'lesson_name' => $lesson->lesson_name,
                             'lesson_type' => $lesson->lesson_type,
                         ];
-                    }),
+                    })->values()->all(),
                 ];
             }),
         ];

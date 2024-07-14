@@ -55,31 +55,28 @@ class QuestionController extends Controller
                 $question->image = $request->file('image')->store('public');
                 $question->save();
             }
+            $answerIds = [];
             foreach ($request->answers as $index => $answer) {
                 $image = null;
                 if ($request->file('answers.' . $index . '.image')) {
                     $image = $request->file('answers.' . $index . '.image')->store('public');
                 }
-                $answerIds = [];
-                if (isset($answer['id'])) {
-                    $answerModel = Answer::find($answer['id']);
-                    $answerModel->update([
-                        'answer_content' => $answer['answer_content'],
-                        'image' => $image,
-                        'is_correct' => $answer['is_correct'] ?? false
-                    ]);
-                    $answerIds[] = $answerModel->id;
-                } else {
-                    $record = Answer::create([
-                        'answer_content' => $answer['answer_content'],
-                        'image' => $image,
-                        'is_correct' => $answer['is_correct'] ?? false,
-                        'question_id' => $question->id
-                    ]);
-                    $answerIds[] = $record->id;
+                $data = [
+                    'answer_content' => $answer['answer_content'],
+                    'is_correct' => $answer['is_correct'] ?? false,
+                    'question_id' => $question->id
+                ];
+                if ($image) {
+                    $data['image'] = $image;
                 }
-                Answer::where('question_id', $question->id)->whereNotIn('id', $answerIds)->delete();
+                if (isset($answer['id'])) {
+                    $answerModel = Answer::firstOrCreate(['id' => $answer['id']], $data);
+                } else {
+                    $answerModel = Answer::create($data);
+                }
+                $answerIds[] = $answerModel->id;
             }
+            Answer::where('question_id', $question->id)->whereNotIn('id', $answerIds)->delete();
         });
 
         return response()->json(['message' => 'Cập nhật câu hỏi thành công']);
