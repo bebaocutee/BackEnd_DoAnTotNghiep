@@ -23,4 +23,9 @@ class Lesson extends Model
     {
         return $this->hasManyThrough(Question::class, LessonQuestion::class, 'lesson_id', 'id', 'id', 'question_id');
     }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }

@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CourseResource;
 use App\Http\Resources\ListLessonResource;
+use App\Models\Answer;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\Result;
+use App\Models\User;
 use App\Models\UserLesson;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -128,5 +132,64 @@ class HomeController extends Controller
             });
         }
         return response()->json($test);
+    }
+
+    public function submitTest(Request $request)
+    {
+        $test = Lesson::find($request->test_id);
+
+        if (!$test) {
+            return response()->json(['message' => 'Không tìm thấy bài thi!'], 422);
+        }
+
+        if (UserLesson::where('user_id', auth()->id())->where('lesson_id', $request->test_id)->exists()) {
+            return response()->json(['message' => 'Bạn đã làm bài kiểm tra này rồi!'], 422);
+        }
+
+        $correctCount = 0;
+        DB::transaction(function () use ($request, $test, &$correctCount) {
+            $userLesson = UserLesson::firstOrCreate([
+                'user_id' => auth()->id(),
+                'lesson_id' => $request->test_id,
+            ]);
+            foreach ($request->answers as $answerId) {
+                $answer = Answer::find($answerId)->load('question.correctAnswer');
+                if (!$answer) {
+                    continue;
+                }
+                if ($answer->question->correctAnswer->id == $answerId) {
+                    $correctCount++;
+                }
+                Result::create([
+                    'user_lesson_id' => $userLesson->id,
+                    'question_id' => $answer->question_id,
+                    'answer_id' => $answer->id,
+                ]);
+            }
+        });
+        $score = round($correctCount / $test->questions->count() * 10, 1);
+
+        return response()->json(['message' => 'Nộp bài thành công!', 'score' => $score, 'course_id' => $test->chapter->course->id ?? null]);
+    }
+
+    public function history($id)
+    {
+        $user = User::find($id)->load(['lessonUsers.lesson.questions.correctAnswer', 'lessonUsers.results']);
+        if ($user && $user->lessonUsers) {
+            $user->lessonUsers->map(function ($lessonUser) {
+                $totalQuestion = $lessonUser->lesson->questions->count() ?? 0;
+                $totalCorrect = $lessonUser->lesson->questions->filter(function ($question) use ($lessonUser) {
+                    return $question->correctAnswer->answer_id ?? null == $lessonUser->results->where('question_id', $question->id)->first()->answer_id;
+                })->count();
+                $totalWrong = $totalQuestion - $totalCorrect;
+                $lessonUser->total_question = $totalQuestion;
+                $lessonUser->total_correct = $totalCorrect;
+                $lessonUser->total_wrong = $totalWrong;
+                $lessonUser->score = round($totalCorrect / $totalQuestion * 10, 1);
+                return $lessonUser;
+            });
+        }
+
+        return response()->json($user->lessonUsers);
     }
 }

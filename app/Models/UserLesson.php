@@ -16,4 +16,9 @@ class UserLesson extends Model
     {
         return $this->hasMany(Result::class, 'user_lesson_id');
     }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class);
+    }
 }

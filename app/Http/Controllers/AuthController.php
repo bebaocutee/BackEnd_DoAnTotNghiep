@@ -36,6 +36,7 @@ class AuthController extends Controller
             'message' => 'Đăng nhập thành công',
             'token' => $token,
             'user' => [
+                'id' => $user->id,
                 'email' => $user->email,
                 'full_name' => $user->full_name,
                 'short_name' => $this->getShortName($user->full_name),
