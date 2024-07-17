@@ -18,12 +18,8 @@ class TeacherController extends Controller
 
     public function create(Request $request)
     {
-        $url = null;
-        if ($request->file('avatar')) {
-            $url = $request->file('avatar')->store('public');
-        }
-        DB::transaction(function () use ($request, $url) {
-            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER, 'avatar' => $url]));
+        DB::transaction(function () use ($request) {
+            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER]));
             TeacherInfo::create([
                 'teacher_id' => $teacher->id,
                 'date_of_birth' => $request->date_of_birth,
@@ -43,15 +39,7 @@ class TeacherController extends Controller
 
     public function update(Request $request, $id)
     {
-        $url = null;
-        if ($request->file('avatar')) {
-            $url = $request->file('avatar')->store('public');
-        }
         $teacher = User::find($id);
-        if ($url) {
-            $teacher->avatar = $url;
-            $teacher->save();
-        }
         $teacher->update($request->only(['full_name', 'email', 'password', 'phone_number']));
         TeacherInfo::updateOrCreate(
             ['teacher_id' => $id],
