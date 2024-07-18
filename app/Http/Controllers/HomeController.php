@@ -60,6 +60,7 @@ class HomeController extends Controller
             $answer->image = $answer->image ? env('APP_URL') . Storage::url($answer->image) : null;
             return $answer;
         });
+        $question->image = $question->image ? env('APP_URL') . Storage::url($question->image) : null;
         return response()->json([
             'results' => $userLesson->results->map(function ($result) {
                 return [
@@ -178,6 +179,9 @@ class HomeController extends Controller
         if ($user && $user->lessonUsers) {
             $user->lessonUsers->map(function ($lessonUser) {
                 $totalQuestion = $lessonUser->lesson->questions->count() ?? 0;
+                if ($totalQuestion == 0) {
+
+                }
                 $totalCorrect = $lessonUser->lesson->questions->filter(function ($question) use ($lessonUser) {
                     return $question->correctAnswer->answer_id ?? null == $lessonUser->results->where('question_id', $question->id)->first()->answer_id;
                 })->count();
@@ -185,7 +189,7 @@ class HomeController extends Controller
                 $lessonUser->total_question = $totalQuestion;
                 $lessonUser->total_correct = $totalCorrect;
                 $lessonUser->total_wrong = $totalWrong;
-                $lessonUser->score = round($totalCorrect / $totalQuestion * 10, 1);
+                $lessonUser->score = round($totalCorrect / $totalQuestion * 10, 1) ?? 0;
                 return $lessonUser;
             });
         }

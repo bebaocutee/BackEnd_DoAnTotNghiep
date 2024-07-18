@@ -23,61 +23,57 @@ class QuestionController extends Controller
 
     public function create(Request $request)
     {
-        DB::transaction(function () use ($request) {
+        $image = null;
+        if ($request->file('image')) {
+            $image = $request->file('image')->store('public'); 
+        }
+        $question = Question::create(array_merge($request->only(['question_content', 'question_bank_id']), ['teacher_id' => auth()->id(), 'image' => $image]));
+        foreach ($request->answers as $index => $answer) {
             $image = null;
-            if ($request->file('image')) {
-                $image = $request->file('image')->store('public');
+            if ($request->file('answers.' . $index . '.image')) {
+                $image = $request->file('answers.' . $index . '.image')->store('public');
             }
-            $question = Question::create(array_merge($request->only(['question_content', 'question_bank_id']), ['teacher_id' => auth()->id(), 'image' => $image]));
-            foreach ($request->answers as $index => $answer) {
-                $image = null;
-                if ($request->file('answers.' . $index . '.image')) {
-                    $image = $request->file('answers.' . $index . '.image')->store('public');
-                }
-                Answer::create([
-                    'answer_content' => $answer['answer_content'],
-                    'image' => $image,
-                    'is_correct' => $answer['is_correct'] ?? false ,
-                    'question_id' => $question->id
-                ]);
-            }
-        });
+            Answer::create([
+                'answer_content' => $answer['answer_content'],
+                'image' => $image,
+                'is_correct' => $answer['is_correct'] ?? false ,
+                'question_id' => $question->id
+            ]);
+        }
 
         return response()->json(['message' => 'Tạo câu hỏi thành công']);
     }
 
     public function update(Request $request, $id)
     {
-        DB::transaction(function () use ($request, $id) {
-            $question = Question::find($id)->load('answers');
-            $question->update($request->only(['question_content', 'question_bank_id']));
-            if ($request->file('image')) {
-                $question->image = $request->file('image')->store('public');
-                $question->save();
+        $question = Question::find($id)->load('answers');
+        $question->update($request->only(['question_content', 'question_bank_id']));
+        if ($request->file('image')) {
+            $question->image = $request->file('image')->store('public');
+            $question->save();
+        }
+        $answerIds = [];
+        foreach ($request->answers as $index => $answer) {
+            $image = null;
+            if ($request->file('answers.' . $index . '.image')) {
+                $image = $request->file('answers.' . $index . '.image')->store('public');
             }
-            $answerIds = [];
-            foreach ($request->answers as $index => $answer) {
-                $image = null;
-                if ($request->file('answers.' . $index . '.image')) {
-                    $image = $request->file('answers.' . $index . '.image')->store('public');
-                }
-                $data = [
-                    'answer_content' => $answer['answer_content'],
-                    'is_correct' => $answer['is_correct'] ?? false,
-                    'question_id' => $question->id
-                ];
-                if ($image) {
-                    $data['image'] = $image;
-                }
-                if (isset($answer['id'])) {
-                    $answerModel = Answer::firstOrCreate(['id' => $answer['id']], $data);
-                } else {
-                    $answerModel = Answer::create($data);
-                }
-                $answerIds[] = $answerModel->id;
+            $data = [
+                'answer_content' => $answer['answer_content'],
+                'is_correct' => $answer['is_correct'] ?? false,
+                'question_id' => $question->id
+            ];
+            if ($image) {
+                $data['image'] = $image;
             }
-            Answer::where('question_id', $question->id)->whereNotIn('id', $answerIds)->delete();
-        });
+            if (isset($answer['id'])) {
+                $answerModel = Answer::firstOrCreate(['id' => $answer['id']], $data);
+            } else {
+                $answerModel = Answer::create($data);
+            }
+            $answerIds[] = $answerModel->id;
+        }
+        Answer::where('question_id', $question->id)->whereNotIn('id', $answerIds)->delete();
 
         return response()->json(['message' => 'Cập nhật câu hỏi thành công']);
     }

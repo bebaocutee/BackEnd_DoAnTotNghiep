@@ -18,16 +18,14 @@ class TeacherController extends Controller
 
     public function create(Request $request)
     {
-        DB::transaction(function () use ($request) {
-            $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER]));
-            TeacherInfo::create([
-                'teacher_id' => $teacher->id,
-                'date_of_birth' => $request->date_of_birth,
-                'experience' => $request->experience,
-                'work_unit' => $request->work_unit,
-                'introduction' => $request->introduction
-            ]);
-        });
+        $teacher = User::create(array_merge($request->only(['full_name', 'email', 'password', 'phone_number']), ['role' => User::ROLE_TEACHER]));
+        TeacherInfo::create([
+            'teacher_id' => $teacher->id,
+            'date_of_birth' => $request->date_of_birth,
+            'experience' => $request->experience,
+            'work_unit' => $request->work_unit,
+            'introduction' => $request->introduction
+        ]);
         return response()->json(['message' => 'Tạo giáo viên thành công']);
     }
 
