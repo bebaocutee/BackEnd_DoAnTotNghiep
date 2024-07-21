@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\LessonResource;
+use App\Models\Chapter;
 use App\Models\Lesson;
 use App\Models\LessonQuestion;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
     public function index(Request $request)
     {
+        $chapters = Chapter::whereIn('course_id', auth()->user()->courses->pluck('id')->toArray() ?? [])->with(['course', 'lessons'])->get();
         $query = Lesson::query();
 
+        if (auth()->user()->role == User::ROLE_TEACHER) {
+            $query->whereIn('chapter_id', $chapters->pluck('id')->toArray());
+        }
         if ($request->chapter_id) {
             $query->where('chapter_id', $request->chapter_id);
         }

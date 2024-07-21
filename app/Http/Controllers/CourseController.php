@@ -4,19 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Models\TeacherCourse;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
     public function index(Request $request)
     {
-        $courses = Course::all();
+        if (auth()->user()->role == User::ROLE_ADMIN) {
+            $courses = Course::with(['teachers'])->get();
+        } else {
+            $courses = auth()->user()->courses()->with(['teachers'])->get();
+        }
         return response()->json(CourseResource::collection($courses));
     }
 
     public function create(Request $request)
     {
-        Course::create(array_merge($request->only(['course_name', 'description']), ['admin_id' => auth()->id()]));
+        $course = Course::create(array_merge($request->only(['course_name', 'description']), ['admin_id' => auth()->id()]));
+        if ($request->teachers) {
+            foreach ($request->teachers as $teacherId) {
+                TeacherCourse::create([
+                    'course_id' => $course->id,
+                    'teacher_id' => $teacherId
+                ]);
+            }
+        }
         return response()->json(['message' => 'Tạo khóa học thành công']);
     }
 
@@ -30,6 +44,15 @@ class CourseController extends Controller
     {
         $course = Course::find($id);
         $course->update($request->only(['course_name', 'description']));
+        TeacherCourse::where('course_id', $course->id)->delete();
+        if ($request->teachers) {
+            foreach ($request->teachers as $teacherId) {
+                TeacherCourse::create([
+                    'course_id' => $course->id,
+                    'teacher_id' => $teacherId
+                ]);
+            }
+        }
         return response()->json(['message' => 'Cập nhật khóa học thành công']);
     }
 

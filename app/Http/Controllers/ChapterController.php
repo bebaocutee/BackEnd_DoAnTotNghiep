@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ChapterResource;
 use App\Models\Chapter;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ChapterController extends Controller
@@ -13,7 +14,11 @@ class ChapterController extends Controller
         if ($request->course_id) {
             $chapters = Chapter::where('course_id', $request->course_id)->with(['course', 'lessons'])->get();
         } else {
-            $chapters = Chapter::with(['course', 'lessons'])->get();
+            if (auth()->user()->role == User::ROLE_ADMIN) {
+                $chapters = Chapter::with(['course', 'lessons'])->get();
+            } else {
+                $chapters = Chapter::whereIn('course_id', auth()->user()->courses->pluck('id')->toArray() ?? [])->with(['course', 'lessons'])->get();
+            }
         }
         return response()->json(ChapterResource::collection($chapters));
     }

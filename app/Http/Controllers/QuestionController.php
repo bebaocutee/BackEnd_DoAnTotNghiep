@@ -13,9 +13,9 @@ class QuestionController extends Controller
     public function index(Request $request)
     {
         if ($request->question_bank_id) {
-            $questions = Question::where('question_bank_id', $request->question_bank_id)->with(['teacher', 'answers'])->get();
+            $questions = Question::where('question_bank_id', $request->question_bank_id)->with(['teacher', 'answers'])->orderBy('question_content')->get();
         } else {
-            $questions = Question::with(['teacher', 'answers'])->get();
+            $questions = Question::with(['teacher', 'answers'])->orderBy('question_content')->get();
         }
 
         return response()->json(QuestionResource::collection($questions));
@@ -25,7 +25,7 @@ class QuestionController extends Controller
     {
         $image = null;
         if ($request->file('image')) {
-            $image = $request->file('image')->store('public'); 
+            $image = $request->file('image')->store('public');
         }
         $question = Question::create(array_merge($request->only(['question_content', 'question_bank_id']), ['teacher_id' => auth()->id(), 'image' => $image]));
         foreach ($request->answers as $index => $answer) {
