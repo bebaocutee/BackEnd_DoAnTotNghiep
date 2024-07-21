@@ -39,7 +39,7 @@ class HomeController extends Controller
         //Lấy dữ liệu trong bảng lesson
         $lesson = Lesson::find($id)->load('chapter.course');
 
-        // Tạo mới nếu chưa có dữ liệu của user lesson
+        // Tạo bai hoc mới nếu hoc sinh chua lam bai lan nao (chưa có dữ liệu của user lesson)
         if (UserLesson::where(['user_id' => auth()->id(), 'lesson_id' => $id])->count() == 0) {
             UserLesson::create([
                 'user_id' => auth()->id(),
@@ -47,7 +47,7 @@ class HomeController extends Controller
             ]);
         }
 
-        // Lấy dữ liệu học sinh đã làm trong bảng user lesson
+        // Lấy dữ liệu cau hoi học sinh đã làm trong bảng user lesson
         $userLesson = UserLesson::where('user_id', auth()->id())->where('lesson_id', $id)->with(['results.answer'])->first();
 
         // Lấy câu hỏi theo id nếu có
@@ -65,7 +65,7 @@ class HomeController extends Controller
             ], 422);
         }
 
-        // Kiểm tra xem đã hết câu hỏi chưa làm chưa
+        // Kiểm tra xem đã lafm hết câu hỏi chưa
         $finishLesson = false;
         if (!$question) { // Nếu không tìm được câu hỏi thì là làm xong rồi
             // Sẽ lấy câu hỏi đầu tiên khi làm xong bài tập
